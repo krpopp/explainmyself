@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <style>
     table,
@@ -89,6 +90,23 @@
 <br>
 <p>Last update:</p>
 <pre id="message">Loading</pre>
+
+<br> <br>
+
+<form action="insert.php" method="post">
+<label for="gname">Name:</label>
+
+<input type = "text" id="gname" name="gname">
+<br>
+
+<input type="submit" value="Submit">
+</form>
+
+<center>
+    
+</center>
+
+
 </body>
 
 </html>
