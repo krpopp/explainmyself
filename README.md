@@ -1,2 +1,2 @@
 # explainmyself
-This is an ongoing project which currently lives <a href"https://kpopp.io/explainmyself/">here</a>.
+This is an ongoing project which currently lives here: https://kpopp.io/explainmyself/.
