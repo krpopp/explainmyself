@@ -82,6 +82,7 @@ input[type="submit"]:hover {
   margin-bottom: 10px;
 font-size: 16px;
 }
+</style>
 
 </head>
 <body>
