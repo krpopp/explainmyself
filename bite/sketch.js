@@ -55,17 +55,19 @@ let sketch = function (p) {
     var bottomLip;
 
     var topGums
+    var bottomGums
 
     p.preload = function () {
         winWidth = window.innerWidth;
         winHeight = window.innerHeight;
-        topTeethX = (winWidth / 2) - (topTeethNum * 150)/2;
+        topTeethX = (winWidth / 2) - 220;
         topTeethY = winHeight / 3;
         botTeethX = topTeethX + 30;
-        botTeethY = winHeight * 0.55;
+        botTeethY = topTeethY + 150
         teefsImg = p.loadImage('teefs.png');
 
         topGums = p.loadImage('topgums.png');
+        bottomGums = p.loadImage("bottomgums.png")
     }
 
     p.setup = function () {
@@ -81,27 +83,34 @@ let sketch = function (p) {
         }
         mouthX = topTeethX - topTeethW[0]/2
         mouthY = topTeethY - topTeethH/2 - 20
-        mouthW = 420
+        mouthW = 480
         mouthH = 340
 
-        topLip = new p.Lip(topTeethX - topTeethW[0]/1.5, topTeethY, topTeethX - topTeethW[0]/2 + 430, topTeethY, 0, -80);
-        bottomLip = new p.Lip(botTeethX - botTeethW[0]/0.7, botTeethY, botTeethX - botTeethW[0]/2 + 400, botTeethY, 500, 80);
+        topLip = new p.Lip(topTeethX - topTeethW[0]/1.5, topTeethY, topTeethX - topTeethW[0]/2 + 430, topTeethY, 0, -50);
+        bottomLip = new p.Lip(botTeethX - botTeethW[0]/0.7, botTeethY, botTeethX - botTeethW[0]/2 + 400, botTeethY, winHeight, 50);
     }
 
     p.draw = function () {
         p.background(234, 203, 210);
         p.noStroke();
         p.fill(37, 40, 61);
-        p.rect(mouthX, mouthY, mouthW, mouthH)
+        //p.rect(mouthX, mouthY, mouthW, mouthH)
+        p.ellipse(mouthX + 210, mouthY + 165, mouthW, mouthH)
         p.fill(184, 72, 154)
         p.image(topGums, topTeethX + 180, topTeethY - 40)
+        p.image(bottomGums, botTeethX + 150, botTeethY + 40)
         //p.rect(topTeethX - topTeethW[0]/2, topTeethY - topTeethH/2 - 20, 420, 50);
         p.rect(botTeethX - botTeethW[0]/2, botTeethY + botTeethH/2 - 20, 360, 50);
-        for(var i = 0; i < botTeeth.length; i++) {
-            botTeeth[i].draw();
+        for (var i = 0; i < botTeeth.length; i++) {
+            
+            if (botTeeth[i].state == Gums) {
+                botTeeth[i].veinDraw();
+                botTeeth[i].draw();
+            }
         }
-        for(var i = 0; i < topTeeth.length; i++) {
-            topTeeth[i].draw();
+        for (var i = 0; i < topTeeth.length; i++) {
+            topTeeth[i].veinDraw();
+            if(topTeeth[i].state == Gums) topTeeth[i].draw();
         }
 
         topLip.touch();
@@ -109,6 +118,16 @@ let sketch = function (p) {
        
         bottomLip.touch();
         bottomLip.draw();
+
+        for(var i = 0; i < botTeeth.length; i++) {
+            if (botTeeth[i].state != Gums) {
+                botTeeth[i].veinDraw();
+                botTeeth[i].draw();
+            }
+        }
+        for(var i = 0; i < topTeeth.length; i++) {
+            if(topTeeth[i].state != Gums) topTeeth[i].draw();
+        }
     }
 
     p.mouseDragged = function() {
@@ -171,17 +190,18 @@ let sketch = function (p) {
         }
 
         draw() {
+            //p.fill(0);
             p.fill(234, 203, 210);
             p.beginShape();
-            p.vertex(mouthX, this.anchorY);
+            p.vertex(0, this.anchorY);
             p.vertex(this.firstVec.x, this.firstVec.y);
             p.bezierVertex(this.firstCon.x, this.firstCon.y, this.secondCon.x, this.secondCon.y, this.secondVec.x, this.secondVec.y)
-            p.vertex(mouthX + mouthW, this.anchorY)
+            p.vertex(winWidth, this.anchorY)
             p.endShape();
 
             p.fill(255, 0, 0);
-            p.ellipse(this.firstCon.x, this.firstCon.y, 20)
-            p.ellipse(this.secondCon.x, this.secondCon.y, 20)
+            //p.ellipse(this.firstCon.x, this.firstCon.y, 20)
+            //p.ellipse(this.secondCon.x, this.secondCon.y, 20)
         }
 
         touch() {
@@ -193,7 +213,9 @@ let sketch = function (p) {
             this.secondCon.y = p.lerp(this.secondCon.y, this.secondConTar.y, 0.05)
     
             if(p.mouseX > this.firstVec.x && p.mouseX < this.firstVec.x + (this.secondVec.x - this.firstVec.x)/2  && p.mouseY > this.firstVec.y - 50 && p.mouseY < this.firstVec.y + 150) {
-                this.firstConMod.y = this.firstConBase.y - p.mouseY
+                var diff = p.constrain(p.abs(this.firstConBase.y - p.mouseY) / 100, 0, 1)
+                diff = 1 - diff
+                this.firstConMod.y = (100 * diff) * Math.sign(this.firstConBase.y - p.mouseY);
                 //this.firstConTar.x = this.firstConBase.x + this.firstConMod.x
                 this.firstConTar.y = this.firstConBase.y + this.firstConMod.y
             } else {
@@ -201,7 +223,9 @@ let sketch = function (p) {
             }
 
             if(p.mouseX > this.secondVec.x - (this.secondVec.x - this.firstVec.x)/2 && p.mouseX < this.secondVec.x && p.mouseY > this.secondVec.y - 50 && p.mouseY < this.secondVec.y + 150){
-                this.secondConMod.y = this.secondConBase.y - p.mouseY
+                var diff = p.constrain(p.abs(this.secondConBase.y - p.mouseY) / 100, 0, 1)
+                diff = 1 - diff
+                this.secondConMod.y = (100 * diff) * Math.sign(this.secondConBase.y - p.mouseY);
                 this.secondConTar.y = this.secondConBase.y + this.secondConMod.y
             } else {
                 this.secondConTar.set(this.secondConBase)
@@ -242,6 +266,9 @@ let sketch = function (p) {
 
             this.index = _i;
             this.isTop = _t;
+
+            this.veinSize = 20;
+
         }
 
         update() {
@@ -286,17 +313,24 @@ let sketch = function (p) {
             this.physics();
         }
 
-        draw() {
+        veinDraw() {
             if (this.state != Pulled && this.state != Released) {
-                p.strokeWeight(30)
-                p.stroke(184, 72, 154);
+                var diff = p.constrain(p.abs(this.startPos.dist(this.pos)) / this.threadDist, 0, 1)
+                diff = 1 - diff
+                this.veinSize =  2 + (20 * diff) * Math.sign(this.startPos.dist(this.pos));
+                
+                p.strokeWeight(this.veinSize)
+                p.stroke(235, 52, 52);
                 if(this.isTop) {
-                    p.line(this.startPos.x, this.startPos.y - (this.size.y/2), this.pos.x, this.pos.y - (this.size.y/2) + 20);
+                    p.line(this.startPos.x, this.startPos.y - (this.size.y/7), this.pos.x, this.pos.y - (this.size.y/2) + 20);
                 } else  {
-                    p.line(this.startPos.x, this.startPos.y + (this.size.y/2), this.pos.x, this.pos.y + (this.size.y/2));
+                    p.line(this.startPos.x, this.startPos.y + (this.size.y/10), this.pos.x, this.pos.y + (this.size.y/2));
                 }
                 
             }
+        }
+
+        draw() {
            this.update();
             p.noStroke();
             p.fill(this.red, this.green, this.blue);
