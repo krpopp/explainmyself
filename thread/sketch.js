@@ -1,5 +1,8 @@
 let sketch = function (p) {
 
+    //to do
+    //replace shapes with photos
+
     var winWidth;
     var winHeight;
 
@@ -27,10 +30,10 @@ let sketch = function (p) {
 
     p.setup = function () {
         p.createCanvas(winWidth, winHeight);
-        eye = new p.Eye(winWidth / 2, winHeight / 2, 80);
+        eye = new p.Eye(winWidth / 2, winHeight / 2, 280);
         mousePos = p.createVector(winWidth / 2, winWidth / 2);
-        for (var i = 0; i < 16; i++) {
-            topLashes[i] = new p.Lash((eye.pos.x - eye.dia) + (i * 10), eye.pos.y - eye.dia, 20, i)
+        for (var i = 0; i < 15; i++) {
+            topLashes[i] = new p.Lash((eye.pos.x - eye.dia/2) + (i * 20), eye.pos.y - eye.dia/1.4, 50, i)
         }
     }
 
@@ -243,7 +246,7 @@ let sketch = function (p) {
         }
 
         releaseThread() {
-            this.posTwo.lerp(this.posOne, 0.1)
+            this.posOne.lerp(this.posTwo, 0.1)
             distCanMove += 1;
             if(this.posTwo.dist(this.posOne) < 0.5) {
                 //console.log("reached")
