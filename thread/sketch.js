@@ -13,6 +13,12 @@ let sketch = function (p) {
 
     var topLashes = [];
 
+    var hasLash = false;
+
+    var looseThreads = 1;
+
+    var distCanMove = 20;
+
     p.preload = function () {
         winWidth = window.innerWidth;
         winHeight = window.innerHeight;
@@ -24,7 +30,7 @@ let sketch = function (p) {
         eye = new p.Eye(winWidth / 2, winHeight / 2, 80);
         mousePos = p.createVector(winWidth / 2, winWidth / 2);
         for (var i = 0; i < 16; i++) {
-            topLashes[i] = new p.Lash((eye.pos.x - eye.dia) + (i * 10), eye.pos.y - eye.dia, 20)
+            topLashes[i] = new p.Lash((eye.pos.x - eye.dia) + (i * 10), eye.pos.y - eye.dia, 20, i)
         }
     }
 
@@ -34,23 +40,44 @@ let sketch = function (p) {
         eye.update();
 
         for (var i = 0; i < topLashes.length; i++) {
-            topLashes[i].overlap();
             topLashes[i].draw();
+        }
+
+        if(hasLash) {
+            p.unWind();
         }
     }
 
     p.mouseDragged = function() {
+        mousePos.set(p.mouseX, p.mouseY)
     }
 
-    p.mouseMoved = function () {
-        
+    p.mouseMoved = function () {  
         mousePos.set(p.mouseX, p.mouseY)
     }
 
     p.mousePressed = function() {
+        for(var i = 0; i < topLashes.length; i++) {
+            topLashes[i].overlap();
+        }
     }
 
     p.mouseReleased = function() {
+        for(var i = 0; i < topLashes.length; i++) {
+            topLashes[i].unverlap();
+        }
+        hasLash = false;
+    }
+
+    p.unWind = function() {
+        var moveThread = topLashes.length - looseThreads;
+        for(var i = topLashes.length - 1; i > -1; i--) {
+            if(i == moveThread) {
+
+                console.log("here")
+                topLashes[i].releaseThread();
+            }
+        }
     }
 
     p.Eye = class {
@@ -134,34 +161,57 @@ let sketch = function (p) {
     }
 
     p.Lash = class {
-        constructor(_x, _y, _length) {
-            this.pos = p.createVector(_x, _y);
+        constructor(_x, _y, _length, _i) {
+            this.posOne = p.createVector(_x, _y);
+            this.posTwo = p.createVector(_x, _y + _length);
+            this.posOneStart = p.createVector(_x, _y);
+            this.postTwoStart = p.createVector(_x, _y + _length);
             this.len = _length;
             this.weight = 3;
             this.hoverRed = 0;
             this.topButt = false;
             this.botButt = false;
             this.startPos = p.createVector(_x, _y);
+            this.index = _i;
+            this.topIndex = _i * 2;
+            this.botIndex = this.topIndex + 1;
+            this.topLoose = false;
+            this.botLoose = false;
+            if(this.index == 0) {
+                this.topLoose = true;
+            } 
         }
 
         draw() {
-            p.stroke(this.hoverRed, 0, 0)
-            p.strokeWeight(this.weight)
-            p.line(this.pos.x, this.pos.y, this.pos.x, this.pos.y + this.len)
-            p.fill(255, 0, 0);
-            if (this.topButt) {
-                console.log("TOP")
-                p.ellipse(this.pos.x, this.pos.y, 5);
-            }
-            if (this.botButt) {
-                p.ellipse(this.pos.x, this.pos.y + this.len, 5);
+            if(!this.topLoose || !this.botLoose) {
+                p.stroke(this.hoverRed, 0, 0)
+                p.strokeWeight(this.weight)
+                p.line(this.posOne.x, this.posOne.y,  this.posTwo.x,  this.posTwo.y)
+                p.fill(255, 0, 0);
+                if (this.topButt) {
+                    this.held();
+                    p.ellipse(this.posOne.x, this.posOne.y, 5);
+                }
+                if (this.botButt) {
+                    this.held();
+                    p.ellipse(this.posTwo.x, this.posTwo);
+                }
             }
         }
 
         overlap() {
-            if (p.mouseX > this.pos.x - this.weight && p.mouseX < this.pos.x + this.weight && p.mouseY > this.pos.y && p.mouseY < this.pos.y + this.len) {
-                this.hoverRed = 255;
-                this.sideCheck();
+            if(mousePos.dist(this.posOne) < 5){
+                if(this.topLoose) {
+                    this.hoverRed = 255;
+                    this.topButt = true;
+                    hasLash = true;
+                }
+            } else if(mousePos.dist(this.posTwo) < 5) {
+                if(this.botLoose) {
+                    this.hoverRed = 255;
+                    this.botButt = true;
+                    hasLash = true;
+                }
             } else {
                 this.topButt = false;
                 this.botButt = false;
@@ -169,17 +219,37 @@ let sketch = function (p) {
             }
         }
 
-        sideCheck() {
-            if (p.mouseY < this.pos.y + (this.len / 2)) {
-                console.log("hi")
-                this.topButt = true;
-            } else {
-                this.topButt = false;
+        unverlap() {
+            this.topButt = false;
+            this.botButt = false;
+            this.hoverRed = 0;
+        }
+
+        held() {
+            var newPos = p.createVector(p.mouseX, p.mouseY);
+            if(this.topLoose && this.topButt) {
+                newPos.x = p.lerp(this.posOne.x, p.mouseX, 0.1);
+                newPos.y = p.lerp(this.posOne.y, p.mouseY, 0.1);
+            } else if(this.botLoose && this.botButt) {
+                newPos.x = p.mouseX;
+                newPos.y = p.mouseY;
             }
-            if (p.mouseY > this.pos.y + (this.len / 2)) {
-                this.botButt = true;
-            } else {
-                this.botButt = false;
+            if(p.abs(this.posOneStart.x - newPos.x) < distCanMove) {
+                this.posOne.x = newPos.x
+            }
+            if(p.abs(this.posOneStart.y - newPos.y) < distCanMove) {
+                this.posOne.y = newPos.y
+            }
+        }
+
+        releaseThread() {
+            this.posTwo.lerp(this.posOne, 0.1)
+            distCanMove += 1;
+            if(this.posTwo.dist(this.posOne) < 0.5) {
+                //console.log("reached")
+                looseThreads++;
+                this.botLoose = true;
+                this.topLoose = true;
             }
         }
 
