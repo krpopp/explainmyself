@@ -55,7 +55,23 @@ let sketch = function (p) {
     var bottomLip;
 
     var topGums
-    var bottomGums
+    var bottomgums
+
+    var state;
+
+    const Oil = Symbol("oil");
+    const Water = Symbol("water");
+
+    var oilStateFrames = [];
+    var oilStateIndex = 0;
+    var oilStateProgress = 0;
+    var oilStateRate = 3;
+    var oilStateRight = true;
+
+    var waterStateFrames = [];
+    var waterStateIndex = 0;
+    var waterStateProgress = 0;
+    var waterStateRate = 3;
 
     p.preload = function () {
         winWidth = window.innerWidth;
@@ -68,6 +84,17 @@ let sketch = function (p) {
 
         topGums = p.loadImage('topgums.png');
         bottomGums = p.loadImage("bottomgums.png")
+
+        for(var i = 0; i < 30; i++) {
+            var num = i + 1;
+            oilStateFrames[i] = p.loadImage('oil/oilipsframe' + num + '.png');
+        }
+        for(var i = 0; i < 18; i++) {
+            var num = i + 1;
+            waterStateFrames[i] = p.loadImage('water/open/waterlips' + num + '.png');
+        }
+
+        state = Oil;
     }
 
     p.setup = function () {
@@ -91,43 +118,74 @@ let sketch = function (p) {
     }
 
     p.draw = function () {
-        p.background(234, 203, 210);
+        p.background(0);
         p.noStroke();
-        p.fill(37, 40, 61);
-        //p.rect(mouthX, mouthY, mouthW, mouthH)
-        p.ellipse(mouthX + 210, mouthY + 165, mouthW, mouthH)
-        p.fill(184, 72, 154)
-        p.image(topGums, topTeethX + 180, topTeethY - 40)
-        p.image(bottomGums, botTeethX + 150, botTeethY + 40)
-        //p.rect(topTeethX - topTeethW[0]/2, topTeethY - topTeethH/2 - 20, 420, 50);
-        p.rect(botTeethX - botTeethW[0]/2, botTeethY + botTeethH/2 - 20, 360, 50);
-        for (var i = 0; i < botTeeth.length; i++) {
+
+        switch(state) {
+            case Oil: 
+                p.image(oilStateFrames[oilStateIndex], winWidth/2, winHeight/2);
+                if(p.mouseX > p.pmouseX && oilStateRight) {
+                    if(oilStateIndex < oilStateFrames.length - 1) {
+                        //oilStateIndex++;
+                        oilStateProgress++;
+                        if(oilStateProgress % oilStateRate == 0) {
+                            oilStateIndex++;
+                        }
+                        if(oilStateIndex >= 16) {
+                            oilStateRight = false;
+                        }
+                    }
+                } else if(p.mouseX < p.pmouseX && !oilStateRight) {
+                    if(oilStateIndex < oilStateFrames.length - 1) {
+                        oilStateProgress++;
+                        if(oilStateProgress % oilStateRate == 0) {
+                            oilStateIndex++;
+                        }
+                    } else {
+                        state = Water;
+                    }
+                }
+                break;
+            case Water:
+                p.image(waterStateFrames[waterStateIndex], winWidth/2, winHeight/2);
+                break;
+        }
+        
+        // p.fill(37, 40, 61);
+        // //p.rect(mouthX, mouthY, mouthW, mouthH)
+        // p.ellipse(mouthX + 210, mouthY + 165, mouthW, mouthH)
+        // p.fill(184, 72, 154)
+        // p.image(topGums, topTeethX + 180, topTeethY - 40)
+        // p.image(bottomGums, botTeethX + 150, botTeethY + 40)
+        // //p.rect(topTeethX - topTeethW[0]/2, topTeethY - topTeethH/2 - 20, 420, 50);
+        // p.rect(botTeethX - botTeethW[0]/2, botTeethY + botTeethH/2 - 20, 360, 50);
+        // for (var i = 0; i < botTeeth.length; i++) {
             
-            if (botTeeth[i].state == Gums) {
-                botTeeth[i].veinDraw();
-                botTeeth[i].draw();
-            }
-        }
-        for (var i = 0; i < topTeeth.length; i++) {
-            topTeeth[i].veinDraw();
-            if(topTeeth[i].state == Gums) topTeeth[i].draw();
-        }
+        //     if (botTeeth[i].state == Gums) {
+        //         botTeeth[i].veinDraw();
+        //         botTeeth[i].draw();
+        //     }
+        // }
+        // for (var i = 0; i < topTeeth.length; i++) {
+        //     topTeeth[i].veinDraw();
+        //     if(topTeeth[i].state == Gums) topTeeth[i].draw();
+        // }
 
-        topLip.touch();
-        topLip.draw();
+        // topLip.touch();
+        // topLip.draw();
        
-        bottomLip.touch();
-        bottomLip.draw();
+        // bottomLip.touch();
+        // bottomLip.draw();
 
-        for(var i = 0; i < botTeeth.length; i++) {
-            if (botTeeth[i].state != Gums) {
-                botTeeth[i].veinDraw();
-                botTeeth[i].draw();
-            }
-        }
-        for(var i = 0; i < topTeeth.length; i++) {
-            if(topTeeth[i].state != Gums) topTeeth[i].draw();
-        }
+        // for(var i = 0; i < botTeeth.length; i++) {
+        //     if (botTeeth[i].state != Gums) {
+        //         botTeeth[i].veinDraw();
+        //         botTeeth[i].draw();
+        //     }
+        // }
+        // for(var i = 0; i < topTeeth.length; i++) {
+        //     if(topTeeth[i].state != Gums) topTeeth[i].draw();
+        // }
     }
 
     p.mouseDragged = function() {
