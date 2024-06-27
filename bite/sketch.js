@@ -8,10 +8,10 @@ let sketch = function (p) {
     var topTeethNum = 6;
     var topTeethX 
     var topTeethY
-    var topTeethW = [50, 50, 100, 100, 50, 50]
-    var topTeethH = 150;
+    var topTeethW = [50, 50, 50, 50, 50, 50]
+    var topTeethH = 200;
     //var topTeethRadius = 20;
-    var topTeethOffset = [0, 50, 70, 80, 80, 75]
+    var topTeethOffset = [0, 30, 35, 37, 37, 37]
     //var topTeethOffset = 100;
 
     var botTeethnum = 6;
@@ -20,11 +20,15 @@ let sketch = function (p) {
     var botTeethW = [50, 50, 50, 50, 50, 50];
     var botTeethH = 150;
     //var botTeethRadius = 20
-    var botTeethOffset = [60, 60, 60, 60, 60, 60]
+    var botTeethOffset = [0, 34, 33, 32, 33, 35]
     //var botTeethOffset = 100;
 
     var topTeeth = [];
     var botTeeth = [];
+
+    var throat;
+    var uvula;
+    var tongue;
 
     const Gums = Symbol("gums");
     const Held = Symbol("held");
@@ -76,14 +80,18 @@ let sketch = function (p) {
     p.preload = function () {
         winWidth = window.innerWidth;
         winHeight = window.innerHeight;
-        topTeethX = (winWidth / 2) - 220;
-        topTeethY = winHeight / 3;
+        topTeethX = (winWidth / 2) - 90;
+        topTeethY = winHeight / 5.8;
         botTeethX = topTeethX + 30;
         botTeethY = topTeethY + 150
-        teefsImg = p.loadImage('teefs.png');
+        teefsImg = p.loadImage('teefs2.png');
 
         topGums = p.loadImage('topgums.png');
         bottomGums = p.loadImage("bottomgums.png")
+
+        throat = p.loadImage('throat.png');
+        uvula = p.loadImage('uvula.png');
+        tongue = p.loadImage('tongue.png');
 
         for(var i = 0; i < 30; i++) {
             var num = i + 1;
@@ -101,11 +109,11 @@ let sketch = function (p) {
         p.createCanvas(winWidth, winHeight);
         p.imageMode(p.CENTER)
         for(var i = 0; i < topTeethNum; i++) {
-            topSprites[i] = teefsImg.get(i * 150, 0, 150, 150)
+            topSprites[i] = teefsImg.get(i * 50, 0, 50, 100)
             topTeeth[i] = new p.Tooth(topTeethX + (topTeethOffset[i] * i), topTeethY, topTeethW[i], topTeethH, i, true);
         }
         for(var i = 0; i < botTeethnum; i++) {
-            botSprites[i] = teefsImg.get(i * 150, 150, 150, 150);
+            botSprites[i] = teefsImg.get(i * 50, 100, 50, 100);
             botTeeth[i] = new p.Tooth(botTeethX + (botTeethOffset[i] * i), botTeethY, botTeethW[i], botTeethH, i, false);
         }
         mouthX = topTeethX - topTeethW[0]/2
@@ -147,10 +155,28 @@ let sketch = function (p) {
                 }
                 break;
             case Water:
+                p.image(throat, topTeethX+90, topTeethY+ 50);
+                p.image(uvula, topTeethX + 100, topTeethY + 20);
+                p.image(tongue, topTeethX + 110, topTeethY + 120);
+                for (var i = 0; i < topTeeth.length; i++) {
+                    topTeeth[i].draw();
+                }
+                p.image(topGums, topTeethX + 94, topTeethY - 20)
+                
+                for(var i = 0; i < botTeeth.length; i++) {
+                    botTeeth[i].draw();
+                }
+                p.image(bottomGums, botTeethX + 80, botTeethY + 17)
                 p.image(waterStateFrames[waterStateIndex], winWidth/2, winHeight/2);
+                var centerDist = p.dist(p.mouseX, p.mouseY, topTeethX + 100, topTeethY + 20);
+                centerDist = p.round(centerDist);
+                console.log(centerDist);
+                waterStateIndex = p.constrain(waterStateFrames.length - centerDist, 0, waterStateFrames.length);
+                
                 break;
         }
-        
+
+
         // p.fill(37, 40, 61);
         // //p.rect(mouthX, mouthY, mouthW, mouthH)
         // p.ellipse(mouthX + 210, mouthY + 165, mouthW, mouthH)
